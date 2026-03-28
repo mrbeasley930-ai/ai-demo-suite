@@ -114,23 +114,45 @@ body::after {
 .hero-sub strong { font-weight: 500; color: var(--text-primary); }
 
 .scroll-indicator {
-  position: absolute; bottom: 40px;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  position: absolute; bottom: 48px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
   animation: fadeInUp 0.8s ease-out 1s both;
   text-decoration: none; cursor: pointer;
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-.scroll-indicator:hover { opacity: 0.7; }
-
-.scroll-indicator span {
-  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
-  color: var(--text-muted);
+.scroll-indicator:hover .scroll-btn {
+  background: rgba(74, 140, 111, 0.2);
+  border-color: var(--verdigris-glow);
+  box-shadow: 0 0 20px rgba(91, 191, 138, 0.25);
+  transform: translateY(2px);
 }
 
-.scroll-line {
-  width: 1px; height: 40px; background: linear-gradient(to bottom, var(--verdigris), transparent);
-  animation: scroll-pulse 2s ease-in-out infinite;
+.scroll-indicator:hover .scroll-label { color: var(--verdigris-glow); }
+
+.scroll-label {
+  font-size: 13px; font-weight: 500; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.scroll-btn {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid rgba(74, 140, 111, 0.3);
+  background: rgba(74, 140, 111, 0.08);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-btn svg {
+  width: 20px; height: 20px;
+  stroke: var(--verdigris-glow); fill: none; stroke-width: 2;
+  animation: bounce-chevron 2s ease-in-out infinite;
+}
+
+@keyframes bounce-chevron {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
 }
 
 /* ── Section Styling ── */
@@ -457,8 +479,10 @@ body::after {
     A demonstration of how AI integrates into the daily work of a classroom teacher &mdash; from planning through to accountability. Built for <strong>Year 8 Latin: Roman Household Religion</strong>.
   </p>
   <a class="scroll-indicator" href="#network" id="heroScroll">
-    <span>Explore</span>
-    <div class="scroll-line"></div>
+    <span class="scroll-label">Explore the suite</span>
+    <div class="scroll-btn">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
   </a>
 </section>
 
