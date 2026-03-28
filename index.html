@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Teaching Suite — S. Beasley</title>
+<meta property="og:title" content="AI Teaching Demo Suite — S. Beasley">
+<meta property="og:description" content="Eight AI-integrated tools covering one complete teaching workflow — from scheme of work through to SLT accountability. Built for Year 8 Latin.">
+<meta property="og:image" content="https://mrbeasley930-ai.github.io/ai-demo-suite/og-image.png">
+<meta property="og:url" content="https://mrbeasley930-ai.github.io/ai-demo-suite/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -153,6 +159,45 @@ body::after {
 @keyframes bounce-chevron {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(4px); }
+}
+
+/* ── Stats Bar ── */
+.stats-bar {
+  padding: 40px 0;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.stats-bar.visible { opacity: 1; transform: translateY(0); }
+
+.stats-row {
+  display: flex; justify-content: center; gap: 0;
+  max-width: 700px; margin: 0 auto;
+}
+
+.stat-item {
+  flex: 1; text-align: center;
+  padding: 16px 8px;
+  position: relative;
+}
+
+.stat-item:not(:last-child)::after {
+  content: '';
+  position: absolute; right: 0; top: 20%;
+  height: 60%; width: 1px;
+  background: rgba(74, 140, 111, 0.15);
+}
+
+.stat-number {
+  font-family: 'Fraunces', serif; font-weight: 300;
+  font-size: 36px; color: var(--verdigris-glow);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 11px; font-weight: 500; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text-muted);
 }
 
 /* ── Section Styling ── */
@@ -486,6 +531,30 @@ body::after {
   </a>
 </section>
 
+<!-- ── Stats Bar ── -->
+<div class="container">
+  <section class="stats-bar section">
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-number" data-target="8">0</div>
+        <div class="stat-label">Tools</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-target="6">0</div>
+        <div class="stat-label">Lessons</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-target="28">0</div>
+        <div class="stat-label">Students</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-target="1">0</div>
+        <div class="stat-label">Workflow</div>
+      </div>
+    </div>
+  </section>
+</div>
+
 <!-- ── Data Flow Network ── -->
 <div class="container">
   <section class="network-section section" id="network">
@@ -616,6 +685,14 @@ body::after {
           <a class="file-chip" onclick="event.stopPropagation()" target="_blank" href="Demo_Diagnostic_Quiz_Student.pdf">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             Student Paper
+          </a>
+          <a class="file-chip" onclick="event.stopPropagation()" target="_blank" href="Demo_Diagnostic_Quiz_Teacher_Key.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Teacher Key
+          </a>
+          <a class="file-chip" onclick="event.stopPropagation()" target="_blank" href="Demo_Quiz_Analysis.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Quiz Analysis
           </a>
           <a class="file-chip" onclick="event.stopPropagation()" target="_blank" href="Demo_Quiz_Results_Grid.pdf">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -814,6 +891,34 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 
 sections.forEach(s => observer.observe(s));
+
+// ── Animated counters ──
+const counters = document.querySelectorAll('.stat-number[data-target]');
+let countersDone = false;
+
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !countersDone) {
+      countersDone = true;
+      counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-target'));
+        const duration = 1200;
+        const start = performance.now();
+        function tick(now) {
+          const elapsed = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          const ease = 1 - Math.pow(1 - progress, 3);
+          counter.textContent = Math.round(target * ease);
+          if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      });
+    }
+  });
+}, { threshold: 0.5 });
+
+const statsBar = document.querySelector('.stats-bar');
+if (statsBar) counterObserver.observe(statsBar);
 
 // ── Sticky nav: show after scrolling past hero ──
 const stickyNav = document.getElementById('stickyNav');
