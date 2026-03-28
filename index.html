@@ -117,7 +117,11 @@ body::after {
   position: absolute; bottom: 40px;
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   animation: fadeInUp 0.8s ease-out 1s both;
+  text-decoration: none; cursor: pointer;
+  transition: opacity 0.3s ease;
 }
+
+.scroll-indicator:hover { opacity: 0.7; }
 
 .scroll-indicator span {
   font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
@@ -452,10 +456,10 @@ body::after {
   <p class="hero-sub">
     A demonstration of how AI integrates into the daily work of a classroom teacher &mdash; from planning through to accountability. Built for <strong>Year 8 Latin: Roman Household Religion</strong>.
   </p>
-  <div class="scroll-indicator">
+  <a class="scroll-indicator" href="#network" id="heroScroll">
     <span>Explore</span>
     <div class="scroll-line"></div>
-  </div>
+  </a>
 </section>
 
 <!-- ── Data Flow Network ── -->
@@ -479,7 +483,7 @@ body::after {
         <!-- Marking to Reporting row -->
         <path class="flow-line" d="M375,325 C375,355 250,355 250,375" />
         <path class="flow-line" d="M375,325 C375,355 500,355 500,375" />
-        <path class="flow-line" d="M625,325 C625,355 750,355 750,375" />
+        <path class="flow-line" d="M625,325 C625,355 500,355 500,375" />
 
         <!-- Row 1: Backbone -->
         <rect class="flow-node" x="410" y="35" width="180" height="40" rx="10"
