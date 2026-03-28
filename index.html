@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Teaching Suite — S. Beasley</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy: #0F1F33;
+  --navy-mid: #162B45;
+  --navy-light: #1B3A5C;
+  --teal: #2E8B8B;
+  --verdigris: #4A8C6F;
+  --verdigris-glow: #5BBF8A;
+  --bronze: #B8956A;
+  --bronze-light: #D4B896;
+  --cream: #FDFDFB;
+  --text-primary: #E8E6E1;
+  --text-secondary: #9BA8B4;
+  --text-muted: #5C6B7A;
+  --card-bg: rgba(22, 43, 69, 0.6);
+  --card-border: rgba(74, 140, 111, 0.15);
+  --card-hover-border: rgba(91, 191, 138, 0.4);
+  --glow-verdigris: 0 0 30px rgba(74, 140, 111, 0.3);
+  --glow-teal: 0 0 40px rgba(46, 139, 139, 0.2);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--navy);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ── Animated Background ── */
+.bg-canvas {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+}
+
+/* ── Grain Overlay ── */
+body::after {
+  content: '';
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 1; opacity: 0.5;
+}
+
+/* ── Layout Container ── */
+.container {
+  position: relative; z-index: 2;
+  max-width: 1100px; margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* ── Hero Section ── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  text-align: center;
+  position: relative;
+  padding: 60px 40px;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 18px; border-radius: 100px;
+  background: rgba(74, 140, 111, 0.1);
+  border: 1px solid rgba(74, 140, 111, 0.25);
+  font-size: 11px; font-weight: 500; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--verdigris-glow);
+  margin-bottom: 32px;
+  animation: fadeInDown 0.8s ease-out 0.2s both;
+}
+
+.hero-badge::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--verdigris-glow);
+  box-shadow: 0 0 8px var(--verdigris-glow);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.hero h1 {
+  font-family: 'Fraunces', serif; font-weight: 300;
+  font-size: clamp(38px, 5.5vw, 64px);
+  line-height: 1.15; color: var(--cream);
+  margin-bottom: 20px;
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.hero h1 em {
+  font-style: italic; font-weight: 400;
+  background: linear-gradient(135deg, var(--verdigris-glow), var(--teal));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: 17px; font-weight: 300; color: var(--text-secondary);
+  max-width: 540px; line-height: 1.7;
+  animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.hero-sub strong { font-weight: 500; color: var(--text-primary); }
+
+.scroll-indicator {
+  position: absolute; bottom: 40px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  animation: fadeInUp 0.8s ease-out 1s both;
+}
+
+.scroll-indicator span {
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.scroll-line {
+  width: 1px; height: 40px; background: linear-gradient(to bottom, var(--verdigris), transparent);
+  animation: scroll-pulse 2s ease-in-out infinite;
+}
+
+/* ── Section Styling ── */
+.section {
+  padding: 80px 0;
+  opacity: 0; transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.section.visible { opacity: 1; transform: translateY(0); }
+
+.section-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--verdigris-glow);
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-family: 'Fraunces', serif; font-weight: 400;
+  font-size: 28px; color: var(--cream);
+  margin-bottom: 8px;
+}
+
+.section-desc {
+  font-size: 14px; color: var(--text-secondary); font-weight: 300;
+  max-width: 600px; margin-bottom: 40px;
+}
+
+/* ── Network Visualisation ── */
+.network-section { padding: 40px 0 80px; }
+
+.network-wrap {
+  position: relative;
+  background: radial-gradient(ellipse at center, rgba(46, 139, 139, 0.06) 0%, transparent 70%);
+  border-radius: 20px; padding: 40px 20px;
+  border: 1px solid rgba(74, 140, 111, 0.08);
+}
+
+.network-svg { width: 100%; height: auto; display: block; }
+
+/* ── Demo Cards ── */
+.card-group {
+  display: grid; gap: 16px;
+  margin-bottom: 48px;
+}
+
+.card-group.single { grid-template-columns: 1fr; max-width: 600px; }
+.card-group.double { grid-template-columns: repeat(2, 1fr); }
+.card-group.triple { grid-template-columns: repeat(3, 1fr); }
+
+.demo-card {
+  position: relative;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 28px 26px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.demo-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--verdigris-glow), transparent);
+  opacity: 0; transition: opacity 0.4s ease;
+}
+
+.demo-card:hover {
+  border-color: var(--card-hover-border);
+  transform: translateY(-4px);
+  box-shadow: var(--glow-verdigris);
+  background: rgba(27, 58, 92, 0.7);
+}
+
+.demo-card:hover::before { opacity: 1; }
+
+.card-number {
+  font-family: 'Fraunces', serif; font-weight: 600;
+  font-size: 11px; color: var(--verdigris-glow);
+  letter-spacing: 1px; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.card-number::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(to right, var(--card-border), transparent);
+}
+
+.card-title {
+  font-family: 'Fraunces', serif; font-weight: 400;
+  font-size: 19px; color: var(--cream);
+  margin-bottom: 8px; line-height: 1.3;
+}
+
+.card-desc {
+  font-size: 13px; font-weight: 300; color: var(--text-secondary);
+  line-height: 1.65; margin-bottom: 18px;
+}
+
+.card-files {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+
+.file-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 6px;
+  background: rgba(74, 140, 111, 0.08);
+  border: 1px solid rgba(74, 140, 111, 0.15);
+  font-size: 11px; color: var(--verdigris-glow);
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.file-chip:hover {
+  background: rgba(74, 140, 111, 0.18);
+  border-color: rgba(91, 191, 138, 0.4);
+  color: #7DDBA8;
+}
+
+.file-chip svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+.card-stat {
+  position: absolute; top: 20px; right: 20px;
+  font-family: 'Fraunces', serif; font-weight: 300;
+  font-size: 36px; color: rgba(74, 140, 111, 0.12);
+  line-height: 1;
+}
+
+/* ── Group Headers ── */
+.group-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 20px;
+}
+
+.group-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(74, 140, 111, 0.1);
+  border: 1px solid rgba(74, 140, 111, 0.2);
+  flex-shrink: 0;
+}
+
+.group-icon svg { width: 18px; height: 18px; stroke: var(--verdigris-glow); fill: none; stroke-width: 1.5; }
+
+.group-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--text-muted);
+}
+
+.group-title {
+  font-family: 'Fraunces', serif; font-weight: 400;
+  font-size: 20px; color: var(--cream);
+}
+
+/* ── Footer ── */
+.footer {
+  padding: 60px 0; text-align: center;
+  border-top: 1px solid rgba(74, 140, 111, 0.1);
+}
+
+.footer p {
+  font-size: 12px; color: var(--text-muted); font-weight: 300;
+  letter-spacing: 0.5px;
+}
+
+.footer .name {
+  font-family: 'Fraunces', serif; font-weight: 400;
+  font-size: 14px; color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+/* ── Keyframes ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
+}
+
+@keyframes scroll-pulse {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(1.2); }
+}
+
+@keyframes dash-flow {
+  to { stroke-dashoffset: -20; }
+}
+
+/* ── SVG Animations ── */
+.flow-line {
+  stroke: var(--verdigris); stroke-width: 1.5;
+  fill: none; opacity: 0.2;
+  stroke-dasharray: 6 4;
+  animation: dash-flow 1.5s linear infinite;
+}
+
+.flow-node {
+  fill: var(--navy-mid); stroke: var(--verdigris); stroke-width: 1.5;
+  transition: all 0.3s ease; cursor: pointer;
+}
+
+.flow-node:hover {
+  fill: rgba(74, 140, 111, 0.2);
+  stroke: var(--verdigris-glow);
+  filter: drop-shadow(0 0 8px rgba(91, 191, 138, 0.4));
+}
+
+.flow-label {
+  font-family: 'Inter', sans-serif; font-size: 10px;
+  fill: var(--text-secondary); text-anchor: middle;
+  pointer-events: none;
+}
+
+.flow-number {
+  font-family: 'Fraunces', serif; font-size: 12px; font-weight: 600;
+  fill: var(--verdigris-glow); text-anchor: middle;
+  pointer-events: none;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .card-group.double, .card-group.triple { grid-template-columns: 1fr; }
+  .container { padding: 0 20px; }
+  .hero { padding: 40px 20px; }
+  .network-wrap { padding: 20px 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Animated Background Canvas ── -->
+<canvas class="bg-canvas" id="bgCanvas"></canvas>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-badge">AI Demo Suite</div>
+  <h1>Eight tools.<br><em>One teaching workflow.</em></h1>
+  <p class="hero-sub">
+    A demonstration of how AI integrates into the daily work of a classroom teacher &mdash; from planning through to accountability. Built for <strong>Year 8 Latin: Roman Household Religion</strong>.
+  </p>
+  <div class="scroll-indicator">
+    <span>Explore</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ── Data Flow Network ── -->
+<div class="container">
+  <section class="network-section section">
+    <div class="section-label">System Architecture</div>
+    <div class="section-title">How the tools connect</div>
+    <div class="section-desc">Every demo feeds into or draws from the others. The Scheme of Work is the backbone &mdash; all data flows from it.</div>
+    <div class="network-wrap">
+      <svg class="network-svg" viewBox="0 0 1000 420" xmlns="http://www.w3.org/2000/svg">
+        <!-- Flow lines (drawn first, behind nodes) -->
+        <!-- SoW to Assessment row -->
+        <path class="flow-line" d="M500,75 C500,120 250,120 250,165" />
+        <path class="flow-line" d="M500,75 C500,120 500,120 500,165" />
+        <path class="flow-line" d="M500,75 C500,120 750,120 750,165" />
+        <!-- Assessment to Marking row -->
+        <path class="flow-line" d="M250,215 C250,250 375,250 375,275" />
+        <path class="flow-line" d="M500,215 C500,250 375,250 375,275" />
+        <path class="flow-line" d="M500,215 C500,250 625,250 625,275" />
+        <path class="flow-line" d="M750,215 C750,250 625,250 625,275" />
+        <!-- Marking to Reporting row -->
+        <path class="flow-line" d="M375,325 C375,355 250,355 250,375" />
+        <path class="flow-line" d="M375,325 C375,355 500,355 500,375" />
+        <path class="flow-line" d="M625,325 C625,355 750,355 750,375" />
+
+        <!-- Row 1: Backbone -->
+        <rect class="flow-node" x="410" y="35" width="180" height="40" rx="10"
+              onclick="openFolder(1)" />
+        <text class="flow-number" x="500" y="50">01</text>
+        <text class="flow-label" x="500" y="65">Scheme of Work</text>
+
+        <!-- Row 2: Assessment & Tracking -->
+        <rect class="flow-node" x="155" y="165" width="190" height="50" rx="10"
+              onclick="openFolder(2)" />
+        <text class="flow-number" x="250" y="183">02</text>
+        <text class="flow-label" x="250" y="200">Diagnostic Quiz</text>
+
+        <rect class="flow-node" x="405" y="165" width="190" height="50" rx="10"
+              onclick="openFolder(3)" />
+        <text class="flow-number" x="500" y="183">03</text>
+        <text class="flow-label" x="500" y="200">Note Tracker</text>
+
+        <rect class="flow-node" x="655" y="165" width="190" height="50" rx="10"
+              onclick="openFolder(7)" />
+        <text class="flow-number" x="750" y="183">07</text>
+        <text class="flow-label" x="750" y="200">Knowledge Organiser</text>
+
+        <!-- Row 3: Marking & Feedback -->
+        <rect class="flow-node" x="280" y="275" width="190" height="50" rx="10"
+              onclick="openFolder(4)" />
+        <text class="flow-number" x="375" y="293">04</text>
+        <text class="flow-label" x="375" y="310">AI Marking</text>
+
+        <rect class="flow-node" x="530" y="275" width="190" height="50" rx="10"
+              onclick="openFolder(6)" />
+        <text class="flow-number" x="625" y="293">06</text>
+        <text class="flow-label" x="625" y="310">Parent Reports</text>
+
+        <!-- Row 4: Reporting & Accountability -->
+        <rect class="flow-node" x="155" y="375" width="190" height="40" rx="10"
+              onclick="openFolder(5)" />
+        <text class="flow-number" x="250" y="390">05</text>
+        <text class="flow-label" x="250" y="405">OFSTED Readiness</text>
+
+        <rect class="flow-node" x="405" y="375" width="190" height="40" rx="10"
+              onclick="openFolder(8)" />
+        <text class="flow-number" x="500" y="390">08</text>
+        <text class="flow-label" x="500" y="405">SLT Data Summary</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ── 1. The Backbone ── -->
+  <section class="section">
+    <div class="group-header">
+      <div class="group-icon">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <div class="group-label">The Backbone</div>
+        <div class="group-title">Planning</div>
+      </div>
+    </div>
+    <div class="card-group single">
+      <div class="demo-card" onclick="openFolder(1)">
+        <div class="card-stat">01</div>
+        <div class="card-number">DEMO 01</div>
+        <div class="card-title">Scheme of Work</div>
+        <div class="card-desc">
+          A complete 6-lesson teaching sequence with objectives, activities, assessment, and differentiation for every lesson. AI generates the first draft; the teacher shapes the substance. This is the document everything else hangs off.
+        </div>
+        <div class="card-files">
+          <a class="file-chip" onclick="event.stopPropagation()" href="Overview_01_Scheme_of_Work.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Overview
+          </a>
+          <a class="file-chip" onclick="event.stopPropagation()" href="Demo_Scheme_of_Work.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Scheme of Work
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 2. Assessment & Tracking ── -->
+  <section class="section">
+    <div class="group-header">
+      <div class="group-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="group-label">Assessment &amp; Tracking</div>
+        <div class="group-title">Measuring what students know</div>
+      </div>
+    </div>
+    <div class="card-group triple">
+      <div class="demo-card" onclick="openFolder(2)">
+        <div class="card-stat">02</div>
+        <div class="card-number">DEMO 02</div>
+        <div class="card-title">Diagnostic Quiz Suite</div>
+        <div class="card-desc">
+          10-question diagnostic with student paper, teacher key, automated analysis, and a full-class results grid. Pinpoints exactly where gaps sit &mdash; AO1 vs AO2.
+        </div>
+        <div class="card-files">
+          <a class="file-chip" onclick="event.stopPropagation()" href="Overview_02_Diagnostic_Quiz.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Overview
+          </a>
+          <a class="file-chip" onclick="event.stopPropagation()" href="Demo_Diagnostic_Quiz_Student.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Student Paper
+          </a>
+          <a class="file-chip" onclick="event.stopPropagation()" href="Demo_Quiz_Results_Grid.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Results Grid
+          </a>
+        </div>
+      </div>
+
+      <div class="demo-card" onclick="openFolder(3)">
+        <div class="card-stat">03</div>
+        <div class="card-number">DEMO 03</div>
+        <div class="card-title">Note Quality Tracker</div>
+        <div class="card-desc">
+          A live RAG-rated spreadsheet tracking 28 students across vocabulary, comprehension, and evaluation. Flags who needs intervention before it's too late.
+        </div>
+        <div class="card-files">
+          <a class="file-chip" onclick="event.stopPropagation()" href="Overview_03_Note_Tracker.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Overview
+          </a>
+          <a class="file-chip" onclick="event.stopPropagation()" href="Demo_Note_Quality_Tracker.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Tracker
+          </a>
+        </div>
+      </div>
+
+      <div class="demo-card" onclick="openFolder(7)">
+        <div class="card-stat">07</div>
+        <div class="card-number">DEMO 07</div>
+        <div class="card-title">Knowledge Organiser</div>
+        <div class="card-desc">
+          Single-page A4 revision resource with vocabulary, key knowledge, evaluation prompts, and retrieval questions &mdash; generated directly from scheme content.
+        </div>
+        <div class="card-files">
+          <a class="file-chip" onclick="event.stopPropagation()" href="Overview_07_Knowledge_Organiser.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Overview
+          </a>
+          <a class="file-chip" onclick="event.stopPropagation()" href="Demo_Knowledge_Organiser.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Knowledge Organiser
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 3. Marking & Feedback ── -->
+  <section class="section">
+    <div class="group-header">
+      <div class="group-icon">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="group-label">Marking &amp; Feedback</div>
+        <div class="group-title">Responding to student work</div>
+      </div>
+    </div>
+    <div class="card-group double">
+      <div class="demo-card" onclick="openFolder(4)">
+        <div class="card-stat">04</div>
+        <div class="card-number">DEMO 04</div>
+        <div class="card-title">AI Marking &amp; Feedback</div>
+        <div class="card-desc">
+          Three student essays marked with AO1/AO2 breakdowns, formative comments, and personalised DIRT homework. Shows AI can hold the marking criteria as rigorously as the teacher.
+        </div>
+        <div class="card-files">
+          <a class="file-chip" onclick="event.stopPropagation()" href="Overview_04_AI_Marking.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Overview
+          </a>
+          <a class="file-chip" onclick="event.stopPropagation()" href="Demo_AI_Marking_Output.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Marking
+          </a>
+          <a class="file-chip" onclick="event.stopPropagation()" href="Demo_DIRT_Homework.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            DIRT Homework
+          </a>
+        </div>
+      </div>
+
+      <div class="demo-card" onclick="openFolder(6)">
+        <div class="card-stat">06</div>
+        <div class="card-number">DEMO 06</div>
+        <div class="card-title">Parent Report Writer</div>
+        <div class="card-desc">
+          Three individualised interim reports &mdash; green, amber, red &mdash; drafted from quiz scores, tracker data, and essay marks. The AI writes the prose; the teacher holds the pen for the final version.
+        </div>
+        <div class="card-files">
+          <a class="file-chip" onclick="event.stopPropagation()" href="Overview_06_Reports.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Overview
+          </a>
+          <a class="file-chip" onclick="event.stopPropagation()" href="Demo_Student_Reports.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Reports
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 4. Reporting & Accountability ── -->
+  <section class="section">
+    <div class="group-header">
+      <div class="group-icon">
+        <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="group-label">Reporting &amp; Accountability</div>
+        <div class="group-title">Proving impact</div>
+      </div>
+    </div>
+    <div class="card-group double">
+      <div class="demo-card" onclick="openFolder(5)">
+        <div class="card-stat">05</div>
+        <div class="card-number">DEMO 05</div>
+        <div class="card-title">OFSTED Inspection Readiness</div>
+        <div class="card-desc">
+          A pre-populated lesson audit and adaptive teaching evidence log aligned to the November 2025 Inspection Toolkit. Shows an inspector exactly what they'd want to see.
+        </div>
+        <div class="card-files">
+          <a class="file-chip" onclick="event.stopPropagation()" href="Overview_05_OFSTED.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Overview
+          </a>
+          <a class="file-chip" onclick="event.stopPropagation()" href="Demo_OFSTED_Lesson_Audit.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Lesson Audit
+          </a>
+          <a class="file-chip" onclick="event.stopPropagation()" href="Demo_Adaptive_Teaching_Evidence_ECW.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Adaptive Teaching
+          </a>
+        </div>
+      </div>
+
+      <div class="demo-card" onclick="openFolder(8)">
+        <div class="card-stat">08</div>
+        <div class="card-number">DEMO 08</div>
+        <div class="card-title">SLT Data Summary</div>
+        <div class="card-desc">
+          A single-page leadership brief with headline stats, RAG distribution, and six metric panels. The data Manny would take into a governors' meeting.
+        </div>
+        <div class="card-files">
+          <a class="file-chip" onclick="event.stopPropagation()" href="Overview_08_SLT_Data.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Overview
+          </a>
+          <a class="file-chip" onclick="event.stopPropagation()" href="Demo_SLT_Data_Summary.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Data Summary
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer class="footer">
+    <p class="name">S. Beasley</p>
+    <p>King Edward VI Five Ways &nbsp;&bull;&nbsp; AI Teaching Demo Suite &nbsp;&bull;&nbsp; Confidential</p>
+  </footer>
+</div>
+
+<script>
+// ── Folder path mapping ──
+const folders = {
+  1: '1 \u2014 Scheme of Work',
+  2: '2 \u2014 Diagnostic Quiz Suite',
+  3: '3 \u2014 Note Quality Tracker',
+  4: '4 \u2014 AI Marking and Feedback',
+  5: '5 \u2014 OFSTED Inspection Readiness',
+  6: '6 \u2014 Parent Report Writer',
+  7: '7 \u2014 Knowledge Organiser',
+  8: '8 \u2014 SLT Data Summary'
+};
+
+function openFolder(num) {
+  const folder = folders[num];
+  if (folder) {
+    window.location.href = 'Overview_0' + num + ['_Scheme_of_Work','_Diagnostic_Quiz','_Note_Tracker','_AI_Marking','_OFSTED','_Reports','_Knowledge_Organiser','_SLT_Data'][num-1] + '.pdf';
+  }
+}
+
+// ── Scroll reveal ──
+const sections = document.querySelectorAll('.section');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+sections.forEach(s => observer.observe(s));
+
+// ── Background particle canvas ──
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+let w, h;
+
+function resize() {
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = document.documentElement.scrollHeight;
+}
+
+function initParticles() {
+  particles = [];
+  const count = Math.min(Math.floor((w * h) / 30000), 200);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: Math.random() * 1.2 + 0.3,
+      dx: (Math.random() - 0.5) * 0.15,
+      dy: (Math.random() - 0.5) * 0.1,
+      opacity: Math.random() * 0.3 + 0.05
+    });
+  }
+}
+
+function drawParticles() {
+  ctx.clearRect(0, 0, w, h);
+
+  // Subtle radial gradients
+  const grd1 = ctx.createRadialGradient(w * 0.3, h * 0.08, 0, w * 0.3, h * 0.08, w * 0.5);
+  grd1.addColorStop(0, 'rgba(46, 139, 139, 0.04)');
+  grd1.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd1;
+  ctx.fillRect(0, 0, w, h);
+
+  const grd2 = ctx.createRadialGradient(w * 0.7, h * 0.4, 0, w * 0.7, h * 0.4, w * 0.4);
+  grd2.addColorStop(0, 'rgba(74, 140, 111, 0.03)');
+  grd2.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd2;
+  ctx.fillRect(0, 0, w, h);
+
+  particles.forEach(p => {
+    p.x += p.dx;
+    p.y += p.dy;
+    if (p.x < 0) p.x = w;
+    if (p.x > w) p.x = 0;
+    if (p.y < 0) p.y = h;
+    if (p.y > h) p.y = 0;
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(91, 191, 138, ' + p.opacity + ')';
+    ctx.fill();
+  });
+
+  requestAnimationFrame(drawParticles);
+}
+
+window.addEventListener('resize', function() { resize(); initParticles(); });
+// Re-measure after content loads
+window.addEventListener('load', function() { resize(); initParticles(); });
+resize();
+initParticles();
+drawParticles();
+</script>
+</body>
+</html>
